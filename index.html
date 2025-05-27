@@ -34,29 +34,54 @@
             }
             
             function getClosestTrees() {
+                let currentLocationMarker = null;
+                let currentTreeMarker = null;
+                let watchId = null;
+
                 if ("geolocation" in navigator) {
+                    // Stop any existing watch
+                    if (watchId != null) {
+                        navigator.geolocation.clearWatch(watchId);
+                        watchId = null;
+                    }
+
                     const options = {
                         timeout: 30000,  // 30 seconds
                         enableHighAccuracy: true,  // Request best possible position
                         maximumAge: 0  // Don't use cached position
                     };
 
-                    navigator.geolocation.getCurrentPosition(
+                    watchId = navigator.geolocation.watchPosition(
                         async (position) => {
                             myLat = position.coords.latitude
                             myLong = position.coords.longitude
                             document.getElementById("location").innerHTML = 
                                 `Your location is (${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}) with accuracy of ${position.coords.accuracy} meters.`;
                             const mapElement = document.getElementById("user_map");
-                            // console.log("Logging map:", mapElement);
-                            console.dir(mapElement);
                             mapElement.center = {lat:myLat, lng: myLong};
                             mapElement.zoom = 18;
+                            if (currentLocationMarker) {
+                                currentLocationMarker.remove();
+                            }
                             const locationMarker = document.createElement('gmp-advanced-marker');
                             locationMarker.setAttribute('position', `${myLat},${myLong}`);
                             locationMarker.setAttribute('title', "Your location");
                             mapElement.appendChild(locationMarker);
+                            currentLocationMarker = locationMarker;
 
+                            locationMarker.innerHTML = `
+                                <div style="
+                                    background-color: #4285F4; 
+                                    width: 20px; 
+                                    height: 20px; 
+                                    border-radius: 50% 50% 50% 50%; 
+                                    transform: rotate(-45deg);
+                                    border: 2px solid white;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                ">
+                            `;
 
                             const url = `https://data.sfgov.org/resource/tkzw-k3nq.json?$where=within_circle(location, ${myLat}, ${myLong}, 100)`
                             const response = await fetch(url)
@@ -75,11 +100,14 @@
                             closest_tree = data[closest_tree_i]
                             console.log(closest_tree)
                             document.getElementById("closest_tree").innerHTML = `The closest tree is a ${closest_tree.qspecies} at ${closest_tree.qaddress}`
+                            if (currentTreeMarker) {
+                                currentTreeMarker.remove();
+                            }
                             const treeMarker = document.createElement('gmp-advanced-marker');
-                            treeMarker.setAttribute('position', `${data[closest_tree_i].latitude},${data[closest_tree_i].longitude}`);
-                            treeMarker.setAttribute('title', `Closest tree: ${data[closest_tree_i].qspecies}`);
+                            treeMarker.setAttribute('position', `${closest_tree.latitude},${closest_tree.longitude}`);
+                            treeMarker.setAttribute('title', `Closest tree: ${closest_tree.qspecies}`);
                             mapElement.appendChild(treeMarker);
-
+                            currentTreeMarker = treeMarker;
                             console.dir(treeMarker)
 
                             treeMarker.innerHTML = `
@@ -97,17 +125,40 @@
                                     <span style="transform: rotate(45deg); color: white; font-weight: bold;">🌳</span>
                                 </div>
                             `;
-
-
-                            /*
+                            
                             const infoWindow = document.createElement('gmp-info-window');
-                            infoWindow.setAttribute('position', `${data[closest_tree_i].latitude},${data[closest_tree_i].longitude}`);
-                            infoWindow.setAttribute('content', `${closest_tree.qspecies} \n ${closest_tree.qaddress}`);
-                            infoWindow.open(mapElement);
-                            mapElement.appendChild(infoWindow);
-                            */
+                            infoWindow.innerHTML = `<div style="background-color: white; color: black; padding: 10px; border-radius: 5px;">${closest_tree.qspecies}</div>`;
+                            treeMarker.appendChild(infoWindow);
+                            let infoWindowOpen = false;
+                            treeMarker.addEventListener('click', () => {
+                                console.log("Clicked tree marker");
+
+                                const allMarkers = mapElement.querySelectorAll('gmp-advanced-marker');
+                                allMarkers.forEach(marker => {
+                                    const otherInfoWindow = marker.querySelector('gmp-info-window');
+                                    if (otherInfoWindow && otherInfoWindow != infoWindow) {
+                                        otherInfoWindow.removeAttribute('open');
+                                    }
+                                });
+
+                                const isCurrentlyOpen = infoWindow.hasAttribute('open');
+                                console.log("Is currently open: ", isCurrentlyOpen);
+
+
+                                if (!isCurrentlyOpen) {
+                                    infoWindow.setAttribute('open', '');
+                                    console.log("Opening info window");
+                                } else {
+                                    infoWindow.removeAttribute('open');
+                                    console.log("Closing info window");
+                                }
+                            });
+
+
+
                         },
                         (error) => {
+                            watchId = null;
                             switch(error.code) {
                                 case error.PERMISSION_DENIED:
                                     document.getElementById("location").innerHTML = "User denied the geolocation request.";
