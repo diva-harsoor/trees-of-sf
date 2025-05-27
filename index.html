@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Trees of SF</title>
+        <script>
+            // Haversine distance function
+            const asin = Math.asin
+            const cos = Math.cos
+            const sin = Math.sin
+            const sqrt = Math.sqrt
+            const PI = Math.PI
+
+            // equatorial mean radius of Earth (in meters)
+            const R = 6378137
+
+            function squared (x) { return x * x }
+            function toRad (x) { return x * PI / 180.0 }
+            function hav (x) {
+            return squared(sin(x / 2))
+            }
+
+            // hav(theta) = hav(bLat - aLat) + cos(aLat) * cos(bLat) * hav(bLon - aLon)
+            function haversineDistance (a, b) {
+            const aLat = toRad(Array.isArray(a) ? a[1] : a.latitude ?? a.lat)
+            const bLat = toRad(Array.isArray(b) ? b[1] : b.latitude ?? b.lat)
+            const aLng = toRad(Array.isArray(a) ? a[0] : a.longitude ?? a.lng ?? a.lon)
+            const bLng = toRad(Array.isArray(b) ? b[0] : b.longitude ?? b.lng ?? b.lon)
+
+            const ht = hav(bLat - aLat) + cos(aLat) * cos(bLat) * hav(bLng - aLng)
+            return 2 * R * asin(sqrt(ht))
+            }
+            
+            function getClosestTrees() {
+                if ("geolocation" in navigator) {
+                    const options = {
+                        timeout: 30000,  // 30 seconds
+                        enableHighAccuracy: true,  // Request best possible position
+                        maximumAge: 0  // Don't use cached position
+                    };
+
+                    navigator.geolocation.getCurrentPosition(
+                        async (position) => {
+                            myLat = position.coords.latitude
+                            myLong = position.coords.longitude
+                            document.getElementById("location").innerHTML = 
+                                `Your location is (${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}) with accuracy of ${position.coords.accuracy} meters.`;
+                            const mapElement = document.getElementById("user_map");
+                            // console.log("Logging map:", mapElement);
+                            console.dir(mapElement);
+                            mapElement.center = {lat:myLat, lng: myLong};
+                            mapElement.zoom = 18;
+                            const locationMarker = document.createElement('gmp-advanced-marker');
+                            locationMarker.setAttribute('position', `${myLat},${myLong}`);
+                            locationMarker.setAttribute('title', "Your location");
+                            mapElement.appendChild(locationMarker);
+
+
+                            const url = `https://data.sfgov.org/resource/tkzw-k3nq.json?$where=within_circle(location, ${myLat}, ${myLong}, 100)`
+                            const response = await fetch(url)
+                            const data = await response.json()
+                            console.log(data)
+                            closest_tree_i = 0
+                            closest_tree_distance = 1000000
+                            for (let i = 0; i < data.length; i++) {
+                                const tree = data[i]
+                                const distance = haversineDistance(myLat, myLong, tree.latitude, tree.longitude)
+                                if (distance < closest_tree_distance) {
+                                    closest_tree_i = i
+                                    closest_tree_distance = distance
+                                }
+                            }
+                            closest_tree = data[closest_tree_i]
+                            console.log(closest_tree)
+                            document.getElementById("closest_tree").innerHTML = `The closest tree is a ${closest_tree.qspecies} at ${closest_tree.qaddress}`
+                            const treeMarker = document.createElement('gmp-advanced-marker');
+                            treeMarker.setAttribute('position', `${data[closest_tree_i].latitude},${data[closest_tree_i].longitude}`);
+                            treeMarker.setAttribute('title', `Closest tree: ${data[closest_tree_i].qspecies}`);
+                            mapElement.appendChild(treeMarker);
+
+                            console.dir(treeMarker)
+
+                            treeMarker.innerHTML = `
+                                <div style="
+                                    background-color: green; 
+                                    width: 30px; 
+                                    height: 30px; 
+                                    border-radius: 50% 50% 50% 0; 
+                                    transform: rotate(-45deg);
+                                    border: 2px solid white;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                ">
+                                    <span style="transform: rotate(45deg); color: white; font-weight: bold;">🌳</span>
+                                </div>
+                            `;
+
+
+                            /*
+                            const infoWindow = document.createElement('gmp-info-window');
+                            infoWindow.setAttribute('position', `${data[closest_tree_i].latitude},${data[closest_tree_i].longitude}`);
+                            infoWindow.setAttribute('content', `${closest_tree.qspecies} \n ${closest_tree.qaddress}`);
+                            infoWindow.open(mapElement);
+                            mapElement.appendChild(infoWindow);
+                            */
+                        },
+                        (error) => {
+                            switch(error.code) {
+                                case error.PERMISSION_DENIED:
+                                    document.getElementById("location").innerHTML = "User denied the geolocation request.";
+                                    break;
+                                case error.POSITION_UNAVAILABLE:
+                                    document.getElementById("location").innerHTML = "Location information is unavailable.";
+                                    break;
+                                case error.TIMEOUT:
+                                    document.getElementById("location").innerHTML = "The request to get location timed out. Try again or check your device's location settings.";
+                                    break;
+                                default:
+                                    document.getElementById("location").innerHTML = "An unknown error occurred.";
+                                    break;
+                            }
+                        },
+                        options
+                    );
+                    document.getElementById("location").innerHTML = "Getting location... This may take a few moments.";
+                } else {
+                    document.getElementById("location").innerHTML = "Geolocation is not supported by this browser.";
+                }
+            }
+        </script>
+
+        <script async src=https://maps.googleapis.com/maps/api/js?key=AIzaSyBYAn-ABzNtWYv3W8q1LIoXPieYXgSu6w8&callback=console.debug&libraries=maps,marker&v=beta></script>
+
+        <style>
+            /* Always set the map height explicitly to define the size of the div
+            * element that contains the map. */
+            gmp-map {
+            height: 100%;
+            }
+
+            /* Optional: Makes the sample page fill the window. */
+            html,
+            body {
+            height: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <h1>Trees of SF</h1>
+            <p>Discover San Francisco's urban canopy as you walk through the city.</p>
+            <p id="location">Your coordinates will appear here</p>
+            <button type="button" onclick="getClosestTrees()">Find the trees closest to you!</button>
+            <p id="closest_tree">The species and address of the closest tree will appear here.</p>
+        </main>
+        <gmp-map id="user_map" center="40.12150192260742,-100.45039367675781" zoom="4" map-id="DEMO_MAP_ID">
+            <gmp-advanced-marker position="40.12150192260742,-100.45039367675781" title="My location"></gmp-advanced-marker>
+        </gmp-map>
+    </body>
+</html>
