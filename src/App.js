@@ -1,7 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
 import { useState, useEffect } from 'react';
-import {APIProvider, Map, Marker} from '@vis.gl/react-google-maps';
+import {APIProvider, Map, Marker, InfoWindow} from '@vis.gl/react-google-maps';
 
 function App() {
   const [isMapping, setIsMapping] = useState(false);
@@ -9,57 +9,29 @@ function App() {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [accuracy, setAccuracy] = useState(0);
   const [watchId, setWatchId] = useState(null);
-  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
   const [loadingError, setLoadingError] = useState(null);
+  const [treeData, setTreeData] = useState([]);
+  const [selectedMarker, setSelectedMarker] = useState(null);
 
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
-  useEffect(() => {
-    // Load Google Maps script dynamically
-    const loadGoogleMapsScript = () => {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&v=weekly&loading=async`;
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
-      
-      return script;
-    };
-
-    let attempts = 0;
-    const maxAttempts = 50;
-
-    const checkGoogleMapsLoaded = () => {
-      attempts++;
-      
-      if (window.google && window.google.maps && window.google.maps.Map) {
-        console.log('Google Maps loaded successfully');
-        setIsGoogleMapsLoaded(true);
-        return;
-      }
-
-      if (attempts >= maxAttempts) {
-        setLoadingError('Google Maps failed to load');
-        return;
-      }
-
-      setTimeout(checkGoogleMapsLoaded, 100);
-    };
-
-    // Check if script is already loaded
-    if (!window.google || !window.google.maps) {
-      const script = loadGoogleMapsScript();
-      
-      script.onload = () => {
-        checkGoogleMapsLoaded();
-      };
-    } else {
-      checkGoogleMapsLoaded();
+  const fetchTreeData = async (latitude, longitude) => {
+    try {
+      const url = `https://data.sfgov.org/resource/tkzw-k3nq.json?$where=within_circle(location, ${latitude}, ${longitude}, 100)`;
+      const response = await fetch(url);
+      const data = await response.json();
+      console.log('Tree data:', data);
+      setTreeData(data);
+    } catch (error) {
+      console.error('Error fetching tree data:', error);
+      setLoadingError('Failed to load tree data');
     }
-  }, [apiKey]);
+  };
 
   const handleClick = () => {
     setIsMapping(true);
+
+    // Get user location
     if (navigator.geolocation) {
       if (watchId) {
         navigator.geolocation.clearWatch(watchId);
@@ -76,38 +48,107 @@ function App() {
         (position) => { 
           setCurrentLocation(position);
           setAccuracy(position.coords.accuracy);
-          console.log('currentLocation in hook', currentLocation);
-          console.log('accuracy in hook', accuracy);    
+          fetchTreeData(position.coords.latitude, position.coords.longitude);
         },
-        (error) => console.error(error),
+        (error) => {
+          console.error('Geolocation error:', error);
+          setLoadingError('Failed to get location');
+        },
         options
       );
       setWatchId(myWatchId);
+    } else {
+      setLoadingError('Geolocation not supported');
     }
   }
+
+  // Cleanup watch on unmount
+  useEffect(() => {
+    return () => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, [watchId]);
 
   return (
     <div className="App">
       <header className="App-header">
+        {loadingError && (
+          <div className="error-message" style={{color: 'red', padding: '10px'}}>
+            {loadingError}
+          </div>
+        )}
+        
         {isMapping ? (
           <div className="map-container">
             <APIProvider 
-              apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY} 
+              apiKey={apiKey}
               onLoad={() => console.log('Map loaded')}
               className="api-provider"
             >
-              {currentLocation && (
-                <Map defaultCenter={{
-                  lat: currentLocation.coords.latitude,
-                  lng: currentLocation.coords.longitude
-                }} defaultZoom={18}>
+              {currentLocation ? (
+                <Map 
+                  defaultCenter={{
+                    lat: currentLocation.coords.latitude,
+                    lng: currentLocation.coords.longitude
+                  }} 
+                  defaultZoom={18}
+
+                >
                   <Marker 
                     position={{
                       lat: currentLocation.coords.latitude,
                       lng: currentLocation.coords.longitude
                     }}
+                    icon={{
+                      url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                    }}
                   />
+                  
+                  {/* Render tree markers */}
+                  {treeData.map((tree, index) => (
+                    tree.location && (
+                      <Marker
+                        key={index}
+                        position={{
+                          lat: parseFloat(tree.location.latitude),
+                          lng: parseFloat(tree.location.longitude)
+                        }}
+                        icon={{
+                          url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+                        }}                      
+                        title={tree.qspecies || 'Tree'}
+                        onClick={() => setSelectedMarker(tree)}
+                      />
+                    )
+                  ))}
+
+                  {selectedMarker && (
+                    <InfoWindow
+                      position={{
+                        lat: parseFloat(selectedMarker.location.latitude),
+                        lng: parseFloat(selectedMarker.location.longitude)
+                      }}
+                      onCloseClick={() => setSelectedMarker(null)}
+                    >
+                      <div style={{
+                            color: 'black',
+                            backgroundColor: 'white',
+                            padding: '10px',
+                            minWidth: '150px',
+                            minHeight: '50px',
+                            fontSize: '14px'
+                          }}>
+                        <h3>{selectedMarker.qspecies || 'Unknown Tree'}</h3>
+                        <p>Address: {selectedMarker.qaddress || 'Unknown'}</p>
+                        <p>Planted: {selectedMarker.plantdate ? new Date(selectedMarker.plantdate).toLocaleDateString() : 'Unknown'}</p>
+                      </div>
+                    </InfoWindow>
+                  )}
                 </Map>
+              ) : (
+                <div>Getting your location...</div>
               )}
             </APIProvider>
           </div>
