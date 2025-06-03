@@ -2,19 +2,8 @@
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
 .App-header {
-  background-color: #282c34;
+  background-color: white;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -28,11 +17,63 @@
   color: #61dafb;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.landing-button {
+  width: 80vmin;
+  height: 80vmin;
+  max-width: 300px;
+  max-height: 300px;
+  background-color: #d0f0c0;
+  border-radius: 50%;
+  border: 2px solid #2E6F40;
+  color: #2E6F40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5%;
+  transition: transform 0.2s;;
+}
+
+.landing-button:hover {
+  transform: scale(1.05);
+}
+
+.landing-button h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vmin, 2rem);
+  text-align: center;
+}
+
+.landing-button p {
+  margin-top: 10px;
+  font-size: clamp(0.875rem, 2.5vmin, 1rem);
+}
+
+@media screen and (max-width: 320px) {
+  .landing-button {
+    width: 90vmin;
+    height: 90vmin;
+    padding: 3%;
   }
-  to {
-    transform: rotate(360deg);
-  }
+}
+
+.map-container {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+}
+
+.loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #333;
+  font-size: 1.2em;
+}
+
+/* Make sure the APIProvider and Map components have proper dimensions */
+.api-provider {
+  width: 100%;
+  height: 100%;
 }
