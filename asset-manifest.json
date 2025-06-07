@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/trees-of-sf/static/css/main.bf9a7b76.css",
+    "main.js": "/trees-of-sf/static/js/main.28fff386.js",
+    "static/js/453.8f868409.chunk.js": "/trees-of-sf/static/js/453.8f868409.chunk.js",
+    "static/media/logo.svg": "/trees-of-sf/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
+    "index.html": "/trees-of-sf/index.html",
+    "main.bf9a7b76.css.map": "/trees-of-sf/static/css/main.bf9a7b76.css.map",
+    "main.28fff386.js.map": "/trees-of-sf/static/js/main.28fff386.js.map",
+    "453.8f868409.chunk.js.map": "/trees-of-sf/static/js/453.8f868409.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.bf9a7b76.css",
+    "static/js/main.28fff386.js"
+  ]
+}
