@@ -2,6 +2,7 @@ import logo from './logo.svg';
 import './App.css';
 import { useState, useEffect } from 'react';
 import {APIProvider, Map, Marker, InfoWindow} from '@vis.gl/react-google-maps';
+import treeData from './data/beginner_trees.json';
 
 function App() {
   const [isMapping, setIsMapping] = useState(false);
@@ -10,11 +11,14 @@ function App() {
   const [accuracy, setAccuracy] = useState(0);
   const [watchId, setWatchId] = useState(null);
   const [loadingError, setLoadingError] = useState(null);
-  const [treeData, setTreeData] = useState([]);
+  // const [treeData, setTreeData] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
+  // const [loading, setLoading] = useState(true);
+  const [treeCollection, setTreeCollection] = useState([]);
 
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
+  /*
   const fetchTreeData = async (latitude, longitude) => {
     try {
       const url = `https://data.sfgov.org/resource/tkzw-k3nq.json?$where=within_circle(location, ${latitude}, ${longitude}, 100)`;
@@ -27,6 +31,21 @@ function App() {
       setLoadingError('Failed to load tree data');
     }
   };
+  */
+
+
+  // Cleanup watch on unmount
+  useEffect(() => {
+    return () => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, [watchId]);  
+
+  // if (loading) {
+  //   return <div>Loading trees...</div>;
+  // }
 
   const handleClick = () => {
     setIsMapping(true);
@@ -48,7 +67,7 @@ function App() {
         (position) => { 
           setCurrentLocation(position);
           setAccuracy(position.coords.accuracy);
-          fetchTreeData(position.coords.latitude, position.coords.longitude);
+          // fetchTreeData(position.coords.latitude, position.coords.longitude);
         },
         (error) => {
           console.error('Geolocation error:', error);
@@ -62,14 +81,10 @@ function App() {
     }
   }
 
-  // Cleanup watch on unmount
-  useEffect(() => {
-    return () => {
-      if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-    };
-  }, [watchId]);
+  // if (loading) {
+  //   return <div>Loading trees...</div>;
+  // }
+
 
   return (
     <div className="App">
@@ -79,9 +94,11 @@ function App() {
             {loadingError}
           </div>
         )}
+
         
         {isMapping ? (
           <div className="map-container">
+
             <APIProvider 
               apiKey={apiKey}
               onLoad={() => console.log('Map loaded')}
@@ -94,7 +111,7 @@ function App() {
                     lng: currentLocation.coords.longitude
                   }} 
                   defaultZoom={18}
-
+                  onClick={() => setSelectedMarker(null)}
                 >
                   <Marker 
                     position={{
@@ -118,7 +135,7 @@ function App() {
                         icon={{
                           url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
                         }}                      
-                        title={tree.qspecies || 'Tree'}
+                        title={tree.common_name || 'Tree'}
                         onClick={() => setSelectedMarker(tree)}
                       />
                     )
@@ -130,7 +147,6 @@ function App() {
                         lat: parseFloat(selectedMarker.location.latitude),
                         lng: parseFloat(selectedMarker.location.longitude)
                       }}
-                      onCloseClick={() => setSelectedMarker(null)}
                     >
                       <div style={{
                             color: 'black',
@@ -140,17 +156,23 @@ function App() {
                             minHeight: '50px',
                             fontSize: '14px'
                           }}>
-                        <h3>{selectedMarker.qspecies || 'Unknown Tree'}</h3>
+                        <h3>{selectedMarker.beginner_designation || 'Unknown Tree'}</h3>
+                        <p>Common Name: {selectedMarker.common_name || 'Unknown Tree'}</p>
+                        <p>Latin name: <i>{selectedMarker.Latin_name || 'Unknown Tree'}</i></p>
                         <p>Address: {selectedMarker.qaddress || 'Unknown'}</p>
-                        <p>Planted: {selectedMarker.plantdate ? new Date(selectedMarker.plantdate).toLocaleDateString() : 'Unknown'}</p>
+                        <p>Planted: {`${Math.floor(selectedMarker.plant_age_in_days/365.25)} years ago` || 'Unknown'}</p>
                       </div>
                     </InfoWindow>
                   )}
                 </Map>
+                
               ) : (
                 <div>Getting your location...</div>
               )}
             </APIProvider>
+            <div>
+              <button onClick={() => setTreeCollection(treeData)}>Load Trees</button>
+            </div>
           </div>
         ) : (
           <button className="landing-button" onClick={handleClick}>
