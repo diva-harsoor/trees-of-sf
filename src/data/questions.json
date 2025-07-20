@@ -1,0 +1,271 @@
+[
+    {
+        "id": 1,
+        "designation": "Pohutukawa",
+        "level": "beginner",
+        "questions": [
+            {
+                "id": 1,
+                "text": "What shape and texture are the leaves?",
+                "options": [
+                    "Needle-like and sharp",
+                    "Oval with smooth edges and leathery texture",
+                    "Heart-shaped and papery",
+                    "Lobed like a maple leaf"
+                ],
+                "correct_answer": 1
+            },
+            {
+                "id": 2,
+                "text": "What color are the undersides of the leaves?",
+                "options": [
+                    "Same green as the top",
+                    "Purple or reddish",
+                    "Silvery-white or pale gray",
+                    "Yellow"
+                ],
+                "correct_answer": 2
+            },
+            {
+                "id": 3,
+                "text": "How would you describe the bark texture?",
+                "options": [
+                    "Smooth and gray",
+                    "Deeply furrowed and dark",
+                    "Stringy, fibrous, and peeling in strips",
+                    "Papery and peeling in sheets"
+                ],
+                "correct_answer": 2
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "designation": "Palm",
+        "level": "beginner",
+        "questions": [
+            {
+                "id": 1,
+                "text": "What shape are the leaves?",
+                "options": [
+                    "Round",
+                    "Star-shaped",
+                    "Fan-shaped or feather-shaped",
+                    "Heart-shaped"
+                ],
+                "correct_answer": 2
+            },
+            {
+                "id": 2,
+                "text": "What is unique about the trunk?",
+                "options": [
+                    "It's bent",
+                    "It's hollow",
+                    "It has no branches",
+                    "It has many branches"
+                ],
+                "correct_answer": 2
+            }
+        ]
+    },
+    {
+        "id": 3,
+        "designation": "Bottlebrush Tree",
+        "level": "beginner",
+        "questions": [
+            {
+                "id": 1,
+                "text": "What shape are the leaves?",
+                "options": [
+                    "Broad and oval",
+                    "Long, narrow, and lance-shaped (like a spear tip)",
+                    "Round with serrated edges",
+                    "Heart-shaped"
+                ],
+                "correct_answer": 1
+            },
+            {
+                "id": 2,
+                "text": "If flowers are present, what do they look like?",
+                "options": [
+                    "Large single roses",
+                    "Cylindrical brushes",
+                    "No flowers present",
+                    "Bell-shaped and drooping"
+                ],
+                "correct_answer": 1
+            },
+            {
+                "id": 3,
+                "text": "What do the seeds look like?",
+                "options": [
+                    "Small, hard, woody capsules",
+                    "Brightly-colored, smooth, and shiny",
+                    "Fleshy and sticky",
+                    "Winged and light"
+                ],
+                "correct_answer": 0
+            }
+        ]
+    },
+    {
+        "id": 4,
+        "designation": "Ficus",
+        "level": "beginner",
+        "questions": [
+            {
+                "id": 1,
+                "text": "What is distinctive about the trunk and roots?",
+                "options": [
+                    "Smooth bark with no visible roots",
+                    "Large buttress roots at the base and/or aerial roots hanging down",
+                    "Thorny bark with spines",
+                    "Deeply furrowed bark like an oak"
+                ],
+                "correct_answer": 1
+            },
+            {
+                "id": 2,
+                "text": "If fruit is present, where does it grow?",
+                "options": [
+                    "Large apples or pears",
+                    "Small, round figs that may be green, purple, or reddish",
+                    "Long pods that split open",
+                    "Clusters of berries"
+                ],
+                "correct_answer": 1
+            },
+            {
+                "id": 3,
+                "text": "What shape are the leaves?",
+                "options": [
+                    "Needle-like and sharp",
+                    "Oval to elliptical with smooth edges and a glossy surface",
+                    "Deeply lobed like an oak leaf",
+                    "Heart-shaped with serrated edges"
+                ],
+                "correct_answer": 1
+            }
+        ]
+    },
+    {
+        "id": 5,
+        "designation": "Southern Magnolia",
+        "level": "beginner",
+        "questions": [
+            {
+                "id": 1,
+                "text": "Describe the undersides of the leaves.",
+                "options": [
+                    "Same green as the top",
+                    "Rusty-brown with a fuzzy texture",
+                    "Silvery-white or pale gray",
+                    "Purple or reddish"
+                ],
+                "correct_answer": 1
+            },
+            {
+                "id": 2,
+                "text": "If flowers are present, what do they look like?",
+                "options": [
+                    "Small clusters of tiny flowers",
+                    "Very large (8-12 inches across), creamy white, fragrant flowers with thick waxy petals",
+                    "Bright red bottlebrush-like flowers",
+                    "Yellow daisy-like flowers"
+                ],
+                "correct_answer": 1
+            },
+            {
+                "id": 3,
+                "text": "What shape and size are the leaves?",
+                "options": [
+                    "Needle-like and sharp",
+                    "Large (6-12 inches), oval to elliptical with smooth edges",
+                    "Deeply lobed like an oak leaf",
+                    "Heart-shaped with serrated edges"
+                ],
+                "correct_answer": 1
+            }
+        ]
+    },
+    {
+        "id": 6,
+        "designation": "Ginkgo",
+        "level": "beginner",
+        "questions": [
+            {
+                "id": 1,
+                "text": "What shape are the leaves?",
+                "options": [
+                    "Oval with serrated edges",
+                    "Fan-shaped with a notch and radiating veins",
+                    "Star-shaped with rounded tips",
+                    "Long and narrow like a needle"
+                ],
+                "correct_answer": 1
+            },
+            {
+                "id": 2,
+                "text": "How would you describe the branching pattern?",
+                "options": [
+                    "Dense with many small branches",
+                    "Relatively sparse with distinctive angular branching",
+                    "Branches in perfect whorls",
+                    "Branches grow in opposite pairs"
+                ],
+                "correct_answer": 1
+            },
+            {
+                "id": 3,
+                "text": "How would you describe the bark?",
+                "options": [
+                    "Smooth and white",
+                    "Deeply furrowed and corky-textured",
+                    "Papery and peeling",
+                    "Spiny with thorns"
+                ],
+                "correct_answer": 1
+            }
+        ]
+    },
+    {
+        "id": 7,
+        "designation": "London Plane",
+        "level": "beginner",
+        "questions": [
+            {
+                "id": 1,
+                "text": "What shape are the leaves?",
+                "options": [
+                    "Long and narrow like a willow",
+                    "Large, broad leaves with 3-5 pointed lobes (like a maple but bigger)",
+                    "Heart-shaped with smooth edges",
+                    "Small oval leaves with serrated edges"
+                ],
+                "correct_answer": 1
+            },
+            {
+                "id": 2,
+                "text": "What does the bark look like?",
+                "options": [
+                    "Smooth and white like birch",
+                    "Exfoliating (peeling off) in irregular patches, creating a camouflage-like pattern of cream, green, and brown",
+                    "Furrowed with thick ridges",
+                    "Papery bark that peels in horizontal strips"
+                ],
+                "correct_answer": 1
+            },
+            {
+                "id": 3,
+                "text": "What do the seed balls look like when present?",
+                "options": [
+                    "Small clusters of tiny seeds",
+                    "Round spiky balls on long stems",
+                    "Winged seeds like maple helicopters",
+                    "Small berries in clusters"
+                ],
+                "correct_answer": 1
+            }
+        ]
+    }
+]

@@ -3,6 +3,7 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import {APIProvider, Map, Marker, InfoWindow} from '@vis.gl/react-google-maps';
 import treeData from './data/beginner_trees.json';
+import questionData from './data/questions.json';
 
 function App() {
   const [isMapping, setIsMapping] = useState(false);
@@ -15,7 +16,8 @@ function App() {
   const [selectedMarker, setSelectedMarker] = useState(null);
   // const [loading, setLoading] = useState(true);
   const [treeCollection, setTreeCollection] = useState([]);
-
+  const [showTreeCollection, setShowTreeCollection] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
   /*
@@ -97,82 +99,143 @@ function App() {
 
         
         {isMapping ? (
-          <div className="map-container">
-
-            <APIProvider 
-              apiKey={apiKey}
-              onLoad={() => console.log('Map loaded')}
-              className="api-provider"
-            >
-              {currentLocation ? (
-                <Map 
-                  defaultCenter={{
-                    lat: currentLocation.coords.latitude,
-                    lng: currentLocation.coords.longitude
-                  }} 
-                  defaultZoom={18}
-                  onClick={() => setSelectedMarker(null)}
-                >
-                  <Marker 
-                    position={{
+          <div style={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ flex: 1, position: 'relative' }}>
+              <APIProvider 
+                apiKey={apiKey}
+                onLoad={() => console.log('Map loaded')}
+                className="api-provider"
+              >
+                {currentLocation ? (
+                  <Map 
+                    defaultCenter={{
                       lat: currentLocation.coords.latitude,
                       lng: currentLocation.coords.longitude
-                    }}
-                    icon={{
-                      url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-                    }}
-                  />
-                  
-                  {/* Render tree markers */}
-                  {treeData.map((tree, index) => (
-                    tree.location && (
-                      <Marker
-                        key={index}
-                        position={{
-                          lat: parseFloat(tree.location.latitude),
-                          lng: parseFloat(tree.location.longitude)
-                        }}
-                        icon={{
-                          url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
-                        }}                      
-                        title={tree.common_name || 'Tree'}
-                        onClick={() => setSelectedMarker(tree)}
-                      />
-                    )
-                  ))}
-
-                  {selectedMarker && (
-                    <InfoWindow
+                    }} 
+                    defaultZoom={18}
+                    onClick={() => {
+                        setShowQuiz(false);
+                        setSelectedMarker(null)
+                      }
+                    }
+                  >
+                    <Marker 
                       position={{
-                        lat: parseFloat(selectedMarker.location.latitude),
-                        lng: parseFloat(selectedMarker.location.longitude)
+                        lat: currentLocation.coords.latitude,
+                        lng: currentLocation.coords.longitude
                       }}
-                    >
-                      <div style={{
-                            color: 'black',
-                            backgroundColor: 'white',
-                            padding: '10px',
-                            minWidth: '150px',
-                            minHeight: '50px',
-                            fontSize: '14px'
-                          }}>
-                        <h3>{selectedMarker.beginner_designation || 'Unknown Tree'}</h3>
-                        <p>Common Name: {selectedMarker.common_name || 'Unknown Tree'}</p>
-                        <p>Latin name: <i>{selectedMarker.Latin_name || 'Unknown Tree'}</i></p>
-                        <p>Address: {selectedMarker.qaddress || 'Unknown'}</p>
-                        <p>Planted: {`${Math.floor(selectedMarker.plant_age_in_days/365.25)} years ago` || 'Unknown'}</p>
-                      </div>
-                    </InfoWindow>
-                  )}
-                </Map>
-                
-              ) : (
-                <div>Getting your location...</div>
-              )}
-            </APIProvider>
-            <div>
-              <button onClick={() => setTreeCollection(treeData)}>Load Trees</button>
+                      icon={{
+                        url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                      }}
+                    />
+                    
+                    {/* Render tree markers */}
+                    {treeData.map((tree, index) => (
+                      tree.location && (
+                        <Marker
+                          key={index}
+                          position={{
+                            lat: parseFloat(tree.location.latitude),
+                            lng: parseFloat(tree.location.longitude)
+                          }}
+                          icon={{
+                            url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+                          }}                      
+                          title={tree.common_name || 'Tree'}
+                          onClick={() => {
+                          setSelectedMarker(tree);
+                          setTreeCollection(prev => [...prev, tree]);
+                        }}
+                        />
+                      )
+                    ))}
+
+                    {selectedMarker && (
+                      <InfoWindow
+                        position={{
+                          lat: parseFloat(selectedMarker.location.latitude),
+                          lng: parseFloat(selectedMarker.location.longitude)
+                        }}
+                        onCloseClick={() => {
+                          setShowQuiz(false);
+                          setSelectedMarker(null)
+                        }}
+                      >
+                        {treeCollection.includes(selectedMarker.tree_id) ? (
+                        <div style={{
+                              color: 'black',
+                              backgroundColor: 'white',
+                              padding: '10px',
+                              minWidth: '150px',
+                              minHeight: '50px',
+                              fontSize: '14px'
+                            }}>
+                          <h3>{selectedMarker.beginner_designation || 'Unknown Tree'}</h3>
+                          <p>Common Name: {selectedMarker.common_name || 'Unknown Tree'}</p>
+                          <p>Scientific name: <i>{selectedMarker.Latin_name || 'Unknown Tree'}</i></p>
+                          <p>Address: {selectedMarker.qaddress || 'Unknown'}</p>
+                          <p>Planted: {`${Math.floor(selectedMarker.plant_age_in_days/365.25)} years ago` || 'Unknown'}</p>
+                        </div>
+                        ) : (<>
+                            {showQuiz ? (
+                              questionData.find(quiz => quiz.designation === selectedMarker.beginner_designation).questions.map((question, index) => (
+                                <div key={index}>
+                                  <h3 style={{color: 'black'}}>{question.text}</h3>
+                                  <p>{question.options.map((option, index) => (
+                                    <button key={index}>{option}</button>
+                                  ))}</p>
+                                </div>
+                              ))
+                          ) : (
+                              <button onClick={() => setShowQuiz(true)}>Collect Tree?</button>
+                            )
+                          }
+                          </>
+                        )}
+                      </InfoWindow>
+                    )}
+                  </Map>
+                  
+                ) : (
+                  <div>Getting your location...</div>
+                )}
+              </APIProvider>
             </div>
+            
+            <div style={{ padding: '10px', backgroundColor: 'white', borderTop: '1px solid #ddd' }}>
+              <button onClick={() => setShowTreeCollection(!showTreeCollection)}>
+                {showTreeCollection ? 'Hide Tree Collection' : 'Show Tree Collection'}
+              </button>
+            </div>
+            
+            {showTreeCollection && treeCollection.length > 0 && (
+              <div style={{
+                padding: '20px',
+                backgroundColor: '#f5f5f5',
+                maxHeight: '200px',
+                overflowY: 'auto'
+              }}>
+                <h3 style={{color: '#229922'}}>Tree Collection ({treeCollection.length} trees)</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 0.5fr))', gap: '15px' }}>
+                  {treeCollection.map((tree, index) => (
+                    <div key={index} style={{
+                      backgroundColor: '#229922',
+                      padding: '15px',
+                      borderRadius: '5px',
+                      border: '1px solid #ddd',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }} onClick={() => setSelectedMarker(tree)}>
+                      <h4>{tree.beginner_designation || 'Unknown Tree'}</h4>
+                      <p><strong>Common Name:</strong> {tree.common_name || 'Unknown'}</p>
+                      <p><strong>Scientific Name:</strong> <i>{tree.Latin_name || 'Unknown'}</i></p>
+                      <p><strong>Address:</strong> {tree.qaddress || 'Unknown'}</p>
+                      <p><strong>Age:</strong> {Math.floor(tree.plant_age_in_days/365.25)} years old</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <button className="landing-button" onClick={handleClick}>
@@ -189,3 +252,5 @@ function App() {
 }
 
 export default App;
+
+
