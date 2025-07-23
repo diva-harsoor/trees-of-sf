@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import {APIProvider, Map, Marker, InfoWindow} from '@vis.gl/react-google-maps';
 import treeData from './data/beginner_trees.json';
 import questionData from './data/questions.json';
+import Quiz from './Quiz';
+import Collection from './TreeCollection';
 
 function App() {
   const [isMapping, setIsMapping] = useState(false);
@@ -178,14 +180,7 @@ function App() {
                         </div>
                         ) : (<>
                             {showQuiz ? (
-                              questionData.find(quiz => quiz.designation === selectedMarker.beginner_designation).questions.map((question, index) => (
-                                <div key={index}>
-                                  <h3 style={{color: 'black'}}>{question.text}</h3>
-                                  <p>{question.options.map((option, index) => (
-                                    <button key={index}>{option}</button>
-                                  ))}</p>
-                                </div>
-                              ))
+                              <Quiz questions={questionData.find(quiz => quiz.designation === selectedMarker.beginner_designation).questions} />
                           ) : (
                               <button onClick={() => setShowQuiz(true)}>Collect Tree?</button>
                             )
@@ -207,35 +202,11 @@ function App() {
                 {showTreeCollection ? 'Hide Tree Collection' : 'Show Tree Collection'}
               </button>
             </div>
-            
-            {showTreeCollection && treeCollection.length > 0 && (
-              <div style={{
-                padding: '20px',
-                backgroundColor: '#f5f5f5',
-                maxHeight: '200px',
-                overflowY: 'auto'
-              }}>
-                <h3 style={{color: '#229922'}}>Tree Collection ({treeCollection.length} trees)</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 0.5fr))', gap: '15px' }}>
-                  {treeCollection.map((tree, index) => (
-                    <div key={index} style={{
-                      backgroundColor: '#229922',
-                      padding: '15px',
-                      borderRadius: '5px',
-                      border: '1px solid #ddd',
-                      cursor: 'pointer',
-                      fontSize: '12px'
-                    }} onClick={() => setSelectedMarker(tree)}>
-                      <h4>{tree.beginner_designation || 'Unknown Tree'}</h4>
-                      <p><strong>Common Name:</strong> {tree.common_name || 'Unknown'}</p>
-                      <p><strong>Scientific Name:</strong> <i>{tree.Latin_name || 'Unknown'}</i></p>
-                      <p><strong>Address:</strong> {tree.qaddress || 'Unknown'}</p>
-                      <p><strong>Age:</strong> {Math.floor(tree.plant_age_in_days/365.25)} years old</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+
+            {showTreeCollection && ( 
+              <Collection treeCollection={treeCollection} setSelectedMarker={setSelectedMarker} />
             )}
+            
           </div>
         ) : (
           <button className="landing-button" onClick={handleClick}>
