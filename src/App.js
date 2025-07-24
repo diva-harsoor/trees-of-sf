@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {APIProvider, Map, Marker, InfoWindow} from '@vis.gl/react-google-maps';
 import treeData from './data/beginner_trees.json';
 import questionData from './data/questions.json';
@@ -16,10 +16,11 @@ function App() {
   const [loadingError, setLoadingError] = useState(null);
   // const [treeData, setTreeData] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
-  // const [loading, setLoading] = useState(true);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [treeCollection, setTreeCollection] = useState([]);
   const [showTreeCollection, setShowTreeCollection] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
+
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
   /*
@@ -37,6 +38,50 @@ function App() {
   };
   */
 
+  // Finding closest tree for guided learning feature
+  // Might be better to find a tree 50m away from user
+  function findClosest(currentLocation, trees) {
+    if (!currentLocation || !trees.length) return null;
+    let minDist = Infinity;
+    let closest = null;
+    trees.forEach(tree => {
+      if (!tree.location) return;
+      const tree_latitude = tree.location && parseFloat(tree.location.latitude);
+      const tree_longitude = tree.location && parseFloat(tree.location.longitude);
+      if (tree_latitude == null || tree_longitude == null) return;
+      const dist = Math.sqrt(
+        Math.pow(tree_latitude - currentLocation.coords.latitude, 2) +
+        Math.pow(tree_longitude - currentLocation.coords.longitude, 2)
+      );
+      if (dist < minDist) {
+        minDist = dist;
+        closest = tree;
+        closest.distance_m = dist;
+      }
+    });
+    return closest;
+  }
+
+  // Pre-filter trees by proximity to speed up closest tree calculation
+const nearbyTrees = useMemo(() => {
+  if (!currentLocation) return [];
+  
+  return treeData.filter(tree => 
+    Math.abs(parseFloat(tree.location.latitude) - currentLocation.coords.latitude) < 0.01 && // ~1km rough filter
+    Math.abs(parseFloat(tree.location.longitude) - currentLocation.coords.longitude) < 0.01
+  );
+}, [currentLocation]);
+
+const closestTree = useMemo(() => 
+  findClosest(currentLocation, nearbyTrees),
+  [currentLocation, nearbyTrees]
+);
+
+useEffect(() => {
+  if (closestTree && isMapping && mapLoaded) {
+      alert(`There is a ${closestTree.common_name} tree ${closestTree.distance_m} meters away from you.`);
+    }
+}, [closestTree, isMapping, mapLoaded]);
 
   // Cleanup watch on unmount
   useEffect(() => {
@@ -51,6 +96,7 @@ function App() {
   //   return <div>Loading trees...</div>;
   // }
 
+  // Handle user click on landing button, watch user location
   const handleClick = () => {
     setIsMapping(true);
 
@@ -80,6 +126,7 @@ function App() {
         options
       );
       setWatchId(myWatchId);
+
     } else {
       setLoadingError('Geolocation not supported');
     }
@@ -91,21 +138,18 @@ function App() {
 
 
   return (
-    <div className="App">
-      <header className="App-header">
+    <div className="app-container">
+      <header className="app-header">
         {loadingError && (
-          <div className="error-message" style={{color: 'red', padding: '10px'}}>
-            {loadingError}
-          </div>
+          <div className="error-message">{loadingError}</div>
         )}
 
-        
         {isMapping ? (
-          <div style={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ flex: 1, position: 'relative' }}>
+          <div className="map-section">
+            <div className="map-area">
               <APIProvider 
                 apiKey={apiKey}
-                onLoad={() => console.log('Map loaded')}
+                onLoad={() => setMapLoaded(true)}
                 className="api-provider"
               >
                 {currentLocation ? (
@@ -130,7 +174,6 @@ function App() {
                         url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
                       }}
                     />
-                    
                     {/* Render tree markers */}
                     {treeData.map((tree, index) => (
                       tree.location && (
@@ -146,7 +189,6 @@ function App() {
                           title={tree.common_name || 'Tree'}
                           onClick={() => {
                           setSelectedMarker(tree);
-                          setTreeCollection(prev => [...prev, tree]);
                         }}
                         />
                       )
@@ -164,25 +206,18 @@ function App() {
                         }}
                       >
                         {treeCollection.includes(selectedMarker.tree_id) ? (
-                        <div style={{
-                              color: 'black',
-                              backgroundColor: 'white',
-                              padding: '10px',
-                              minWidth: '150px',
-                              minHeight: '50px',
-                              fontSize: '14px'
-                            }}>
-                          <h3>{selectedMarker.beginner_designation || 'Unknown Tree'}</h3>
-                          <p>Common Name: {selectedMarker.common_name || 'Unknown Tree'}</p>
-                          <p>Scientific name: <i>{selectedMarker.Latin_name || 'Unknown Tree'}</i></p>
-                          <p>Address: {selectedMarker.qaddress || 'Unknown'}</p>
-                          <p>Planted: {`${Math.floor(selectedMarker.plant_age_in_days/365.25)} years ago` || 'Unknown'}</p>
+                        <div className="tree-info-window">
+                          <h3 className="tree-title">{selectedMarker.beginner_designation || 'Unknown Tree'}</h3>
+                          <p className="tree-detail">Common Name: {selectedMarker.common_name || 'Unknown Tree'}</p>
+                          <p className="tree-detail">Scientific name: <i>{selectedMarker.Latin_name || 'Unknown Tree'}</i></p>
+                          <p className="tree-detail">Address: {selectedMarker.qaddress || 'Unknown'}</p>
+                          <p className="tree-detail">Planted: {`${Math.floor(selectedMarker.plant_age_in_days/365.25)} years ago` || 'Unknown'}</p>
                         </div>
                         ) : (<>
                             {showQuiz ? (
-                              <Quiz questions={questionData.find(quiz => quiz.designation === selectedMarker.beginner_designation).questions} />
+                              <Quiz collection={treeCollection} setCollection={setTreeCollection} tree={selectedMarker} questions={questionData.find(quiz => quiz.designation === selectedMarker.beginner_designation).questions} />
                           ) : (
-                              <button onClick={() => setShowQuiz(true)}>Collect Tree?</button>
+                              <button className="collect-btn" onClick={() => setShowQuiz(true)}>Collect Tree?</button>
                             )
                           }
                           </>
@@ -190,31 +225,25 @@ function App() {
                       </InfoWindow>
                     )}
                   </Map>
-                  
                 ) : (
-                  <div>Getting your location...</div>
+                  <div className="loading-message">Getting your location...</div>
                 )}
               </APIProvider>
             </div>
-            
-            <div style={{ padding: '10px', backgroundColor: 'white', borderTop: '1px solid #ddd' }}>
-              <button onClick={() => setShowTreeCollection(!showTreeCollection)}>
+            <div className="map-controls">
+              <button className="toggle-collection-btn" onClick={() => setShowTreeCollection(!showTreeCollection)}>
                 {showTreeCollection ? 'Hide Tree Collection' : 'Show Tree Collection'}
               </button>
             </div>
-
             {showTreeCollection && ( 
               <Collection treeCollection={treeCollection} setSelectedMarker={setSelectedMarker} />
             )}
-            
           </div>
         ) : (
           <button className="landing-button" onClick={handleClick}>
-            <h1>Discover <br></br> Trees Near You</h1>
-            <br></br>
-            <p>
-              Tap to share your location.
-            </p>
+            <h1>Discover <br /> Trees Near You</h1>
+            <br />
+            <p>Tap to share your location.</p>
           </button>
         )}
       </header>

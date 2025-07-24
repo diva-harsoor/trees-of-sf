@@ -1,20 +1,65 @@
-.App {
-  text-align: center;
+.app-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
 }
 
-.App-header {
+.app-header {
   background-color: white;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.error-message {
+  color: #b22222;
+  background: #ffeaea;
+  border: 1px solid #ffcccc;
+  padding: 12px 20px;
+  border-radius: 6px;
+  margin-bottom: 18px;
+  font-size: 1rem;
+}
+
+.map-section {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-area {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  min-height: 350px;
+}
+
+.map-controls {
+  padding: 10px;
+  background-color: white;
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.toggle-collection-btn {
+  background: #2E6F40;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle-collection-btn:hover {
+  background: #229922;
 }
 
 .landing-button {
@@ -31,48 +76,57 @@
   align-items: center;
   justify-content: center;
   padding: 5%;
-  transition: transform 0.2s;;
+  transition: transform 0.2s;
+  margin: 0 auto;
 }
-
 .landing-button:hover {
   transform: scale(1.05);
 }
 
-.landing-button h1 {
-  margin: 0;
-  font-size: clamp(1.5rem, 4vmin, 2rem);
+.tree-info-window {
+  color: #2E6F40;
+  background-color: #fff;
+  padding: 14px 18px;
+  min-width: 180px;
+  min-height: 60px;
+  font-size: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.tree-title {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.tree-detail {
+  margin: 2px 0;
+  font-size: 0.98rem;
+}
+
+.collect-btn {
+  background: #2E6F40;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+.collect-btn:hover {
+  background: #229922;
+}
+
+.loading-message {
+  color: #333;
+  font-size: 1.1rem;
+  padding: 20px;
   text-align: center;
 }
 
-.landing-button p {
-  margin-top: 10px;
-  font-size: clamp(0.875rem, 2.5vmin, 1rem);
-}
-
-@media screen and (max-width: 320px) {
-  .landing-button {
-    width: 90vmin;
-    height: 90vmin;
-    padding: 3%;
-  }
-}
-
-.map-container {
-  width: 100%;
-  height: 100vh;
-  position: relative;
-}
-
-.loading {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #333;
-  font-size: 1.2em;
-}
-
-/* Make sure the APIProvider and Map components have proper dimensions */
+/* Check APIProvider and Map dimensions */
 .api-provider {
   width: 100%;
   height: 100%;
