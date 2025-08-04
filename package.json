@@ -1,7 +1,6 @@
 {
   "name": "trees-of-sf",
   "version": "0.1.0",
-  "homepage": "https://diva-harsoor.github.io/trees-of-sf",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
