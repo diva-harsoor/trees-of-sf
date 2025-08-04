@@ -6,6 +6,8 @@ import treeData from './data/beginner_trees.json';
 import questionData from './data/questions.json';
 import Quiz from './Quiz';
 import Collection from './TreeCollection';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   const [isMapping, setIsMapping] = useState(false);
@@ -79,7 +81,7 @@ const closestTree = useMemo(() =>
 
 useEffect(() => {
   if (closestTree && isMapping && mapLoaded) {
-      alert(`There is a ${closestTree.common_name} tree ${closestTree.distance_m} meters away from you.`);
+      toast(`There is a ${closestTree.common_name} tree ${closestTree.distance_m} meters away from you.`);
     }
 }, [closestTree, isMapping, mapLoaded]);
 
@@ -139,6 +141,7 @@ useEffect(() => {
 
   return (
     <div className="app-container">
+      <ToastContainer />
       <header className="app-header">
         {loadingError && (
           <div className="error-message">{loadingError}</div>
