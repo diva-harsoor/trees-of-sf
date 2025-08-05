@@ -8,6 +8,7 @@ import Quiz from './Quiz';
 import Collection from './TreeCollection';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { findAllByLabelText } from '@testing-library/dom';
 
 function App() {
   const [isMapping, setIsMapping] = useState(false);
@@ -22,23 +23,23 @@ function App() {
   const [treeCollection, setTreeCollection] = useState([]);
   const [showTreeCollection, setShowTreeCollection] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
+  const [discoveryMode, setDiscoveryMode] = useState(false);
+  const [apiTreeData, setApiTreeData] = useState([]);
 
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
-  /*
   const fetchTreeData = async (latitude, longitude) => {
     try {
       const url = `https://data.sfgov.org/resource/tkzw-k3nq.json?$where=within_circle(location, ${latitude}, ${longitude}, 100)`;
       const response = await fetch(url);
       const data = await response.json();
       console.log('Tree data:', data);
-      setTreeData(data);
+      setApiTreeData(data);
     } catch (error) {
       console.error('Error fetching tree data:', error);
       setLoadingError('Failed to load tree data');
     }
   };
-  */
 
   // Finding closest tree for guided learning feature
   // Might be better to find a tree 50m away from user
@@ -68,11 +69,15 @@ function App() {
 const nearbyTrees = useMemo(() => {
   if (!currentLocation) return [];
   
-  return treeData.filter(tree => 
+  // Use local treeData for guided mode, apiTreeData for discovery mode
+  const currentTreeData = discoveryMode ? apiTreeData : treeData;
+  
+  return currentTreeData.filter(tree => 
+    tree.location &&
     Math.abs(parseFloat(tree.location.latitude) - currentLocation.coords.latitude) < 0.01 && // ~1km rough filter
     Math.abs(parseFloat(tree.location.longitude) - currentLocation.coords.longitude) < 0.01
   );
-}, [currentLocation]);
+}, [currentLocation, discoveryMode, treeData, apiTreeData]);
 
 const closestTree = useMemo(() => 
   findClosest(currentLocation, nearbyTrees),
@@ -80,10 +85,17 @@ const closestTree = useMemo(() =>
 );
 
 useEffect(() => {
-  if (closestTree && isMapping && mapLoaded) {
+  if (closestTree && isMapping && mapLoaded && !discoveryMode) {
       toast(`There is a ${closestTree.common_name} tree ${closestTree.distance_m} meters away from you.`);
     }
-}, [closestTree, isMapping, mapLoaded]);
+}, [closestTree, isMapping, mapLoaded, discoveryMode]);
+
+// Fetch API data when switching to discovery mode
+useEffect(() => {
+  if (discoveryMode && currentLocation) {
+    fetchTreeData(currentLocation.coords.latitude, currentLocation.coords.longitude);
+  }
+}, [discoveryMode, currentLocation]);
 
   // Cleanup watch on unmount
   useEffect(() => {
@@ -119,7 +131,9 @@ useEffect(() => {
         (position) => { 
           setCurrentLocation(position);
           setAccuracy(position.coords.accuracy);
-          // fetchTreeData(position.coords.latitude, position.coords.longitude);
+          if (discoveryMode) {
+            fetchTreeData(position.coords.latitude, position.coords.longitude);
+          }
         },
         (error) => {
           console.error('Geolocation error:', error);
@@ -162,6 +176,9 @@ useEffect(() => {
                       lng: currentLocation.coords.longitude
                     }} 
                     defaultZoom={18}
+                    options={{
+                      fullscreenControl: false,
+                    }}
                     onClick={() => {
                         setShowQuiz(false);
                         setSelectedMarker(null)
@@ -178,7 +195,7 @@ useEffect(() => {
                       }}
                     />
                     {/* Render tree markers */}
-                    {treeData.map((tree, index) => (
+                    {(discoveryMode ? apiTreeData : treeData).map((tree, index) => (
                       tree.location && (
                         <Marker
                           key={index}
@@ -210,19 +227,29 @@ useEffect(() => {
                       >
                         {treeCollection.includes(selectedMarker.tree_id) ? (
                         <div className="tree-info-window">
-                          <h3 className="tree-title">{selectedMarker.beginner_designation || 'Unknown Tree'}</h3>
+                          <h3 className="tree-title">{selectedMarker.beginner_designation || selectedMarker.common_name || 'Unknown Tree'}</h3>
                           <p className="tree-detail">Common Name: {selectedMarker.common_name || 'Unknown Tree'}</p>
-                          <p className="tree-detail">Scientific name: <i>{selectedMarker.Latin_name || 'Unknown Tree'}</i></p>
-                          <p className="tree-detail">Address: {selectedMarker.qaddress || 'Unknown'}</p>
-                          <p className="tree-detail">Planted: {`${Math.floor(selectedMarker.plant_age_in_days/365.25)} years ago` || 'Unknown'}</p>
+                          <p className="tree-detail">Scientific name: <i>{selectedMarker.Latin_name || selectedMarker.scientific_name || 'Unknown Tree'}</i></p>
+                          <p className="tree-detail">Address: {selectedMarker.qaddress || selectedMarker.address || 'Unknown'}</p>
+                          <p className="tree-detail">Planted: {selectedMarker.plant_age_in_days ? `${Math.floor(selectedMarker.plant_age_in_days/365.25)} years ago` : 'Unknown'}</p>
                         </div>
-                        ) : (<>
+                        ) : discoveryMode ? (
+                          // Discovery mode: just show tree info
+                          <div className="tree-info-window">
+                            <h3 className="tree-title">{selectedMarker.qspecies || 'Unknown Tree'}</h3>
+                            <p className="tree-detail">Species: {selectedMarker.qspecies || 'Unknown Tree'}</p>
+                            <p className="tree-detail">Address: {selectedMarker.qaddress || 'Unknown'}</p>
+                            <p className="tree-detail">Site Info: {selectedMarker.qsiteinfo || 'Unknown'}</p>
+                            <p className="tree-detail">Planted: {selectedMarker.plantdate ? new Date(selectedMarker.plantdate).getFullYear() : 'Unknown'}</p>
+                          </div>
+                        ) : (
+                          // Guided mode: show quiz functionality
+                          <>
                             {showQuiz ? (
-                              <Quiz collection={treeCollection} setCollection={setTreeCollection} tree={selectedMarker} questions={questionData.find(quiz => quiz.designation === selectedMarker.beginner_designation).questions} />
-                          ) : (
+                              <Quiz collection={treeCollection} setCollection={setTreeCollection} tree={selectedMarker} questions={questionData.find(quiz => quiz.designation === selectedMarker.beginner_designation)?.questions || []} />
+                            ) : (
                               <button className="collect-btn" onClick={() => setShowQuiz(true)}>Collect Tree?</button>
-                            )
-                          }
+                            )}
                           </>
                         )}
                       </InfoWindow>
@@ -232,8 +259,13 @@ useEffect(() => {
                   <div className="loading-message">Getting your location...</div>
                 )}
               </APIProvider>
+
+          <div className="mode-controls toggle-collection-btn" onClick={() => setDiscoveryMode(!discoveryMode)}>
+            {discoveryMode ? '🔍 Discovery Mode' : '📚 Guided Learning Mode'}
+          </div>
+
             </div>
-            <div className="map-controls">
+            <div className="collection-view">
               <button className="toggle-collection-btn" onClick={() => setShowTreeCollection(!showTreeCollection)}>
                 {showTreeCollection ? 'Hide Tree Collection' : 'Show Tree Collection'}
               </button>

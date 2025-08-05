@@ -7,6 +7,24 @@ function Quiz({ tree, collection, setCollection, questions }) {
   const [score, setScore] = useState(0);
   const [showQuiz, setShowQuiz] = useState(true);
 
+  // Update collection for successful quiz
+  useEffect(() => {
+    if (!showQuiz && score === questions.length) {
+      setCollection(prev => [...prev, tree]);
+    }
+  }, [showQuiz, score, questions.length, setCollection, tree]);
+
+  // Safeguard for empty questions
+  if (!questions || questions.length === 0) {
+    return (
+      <div className="quiz-container">
+        <div className="quiz-result">
+          <h3 className="quiz-fail">No questions available for this tree.</h3>
+        </div>
+      </div>
+    );
+  }
+
   // Progress quiz & update score
   const handleAnswer = (option) => {
     const isCorrect = option === questions[currentQuestion].correct_answer;
@@ -18,13 +36,6 @@ function Quiz({ tree, collection, setCollection, questions }) {
       setShowQuiz(false);
     }
   };
-
-  // Update collection for successful quiz
-  useEffect(() => {
-    if (!showQuiz && score === questions.length) {
-      setCollection(prev => [...prev, tree]);
-    }
-  }, [showQuiz, score, questions.length, setCollection, tree]);
 
   return (
     <div className="quiz-container">

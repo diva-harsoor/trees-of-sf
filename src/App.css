@@ -84,7 +84,16 @@ html, body {
   overflow: hidden;
 }
 
-.map-controls {
+.mode-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px; 
+}
+
+.collection-view {
   padding: 10px;
   background-color: transparent; /* Remove white background on mobile */
   border-top: 1px solid #ddd;
@@ -96,7 +105,7 @@ html, body {
 
 /* Add white background to controls only on desktop */
 @media (min-width: 768px) {
-  .map-controls {
+  .collection-view {
     background-color: white;
   }
 }
