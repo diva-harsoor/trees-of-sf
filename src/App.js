@@ -141,8 +141,8 @@ useEffect(() => {
 
   return (
     <div className="app-container">
-      <ToastContainer />
       <header className="app-header">
+        <ToastContainer />
         {loadingError && (
           <div className="error-message">{loadingError}</div>
         )}
