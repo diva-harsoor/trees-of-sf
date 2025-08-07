@@ -204,7 +204,8 @@ useEffect(() => {
                             lng: parseFloat(tree.location.longitude)
                           }}
                           icon={{
-                            url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+                            url: '/tree.png',
+                            scaledSize: { width: 30, height: 30 }
                           }}                      
                           title={tree.common_name || 'Tree'}
                           onClick={() => {
