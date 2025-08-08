@@ -235,7 +235,7 @@ html, body {
   
   /* Ensure mode controls don't interfere with content */
   .mode-controls {
-    top: env(safe-area-inset-top, 10px);
-    right: env(safe-area-inset-right, 10px);
+    top: max(10px, env(safe-area-inset-top, 10px));
+    right: max(10px, env(safe-area-inset-right, 10px));
   }
 }
