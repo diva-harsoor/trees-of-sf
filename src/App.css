@@ -9,29 +9,35 @@ html, body {
   padding: 0;
   background: transparent;
   overflow-x: hidden; /* Prevent horizontal scroll */
+  /* Add these for better mobile handling */
+  height: 100%;
+  position: fixed;
+  width: 100%;
 }
 
 #root {
   margin: 0;
   padding: 0;
-  min-height: 100vh;
+  height: 100%;
+  width: 100%;
+  position: fixed;
 }
 
 .app-container {
-  min-height: 100vh;
+  height: 100%;
   display: flex;
   justify-content: center;
   padding: 0;
   position: relative;
   background: transparent;
-  margin: 0; /* Make sure no margin */
-  width: 100vw; /* Full viewport width */
+  margin: 0;
+  width: 100%;
 }
 
 .app-header {
   width: 100%;
-  background-color: transparent; /* Change from white to transparent on mobile */
-  min-height: 100vh;
+  background-color: transparent;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -42,19 +48,28 @@ html, body {
 
 /* Only add white background on larger screens for phone effect */
 @media (min-width: 768px) {
+  html, body, #root {
+    position: static;
+    height: auto;
+    min-height: 100vh;
+  }
+  
   .app-container {
     background: #f3f4f6;
     padding: 2rem;
+    min-height: 100vh;
+    height: auto;
   }
   
   .app-header {
     width: 390px;
     min-height: 700px;
     max-height: 80vh;
+    height: auto;
     border-radius: 12px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     overflow: hidden;
-    background-color: white; /* Add white background only on desktop */
+    background-color: white;
   }
 }
 
@@ -90,17 +105,19 @@ html, body {
   right: 10px;
   display: flex;
   flex-direction: column;
-  gap: 4px; 
+  gap: 4px;
+  z-index: 10; /* Ensure it stays above map */
 }
 
 .collection-view {
   padding: 10px;
-  background-color: transparent; /* Remove white background on mobile */
+  background-color: transparent;
   border-top: 1px solid #ddd;
   display: flex;
   justify-content: center;
   gap: 12px;
   height: 60px;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 /* Add white background to controls only on desktop */
@@ -141,6 +158,7 @@ html, body {
   padding: 5%;
   transition: transform 0.2s;
   margin: 0 auto;
+  cursor: pointer; /* Add cursor pointer */
 }
 .landing-button:hover {
   transform: scale(1.05);
@@ -200,4 +218,24 @@ html, body {
 .api-provider * {
   max-width: 100% !important;
   position: relative !important;
+}
+
+/* Additional mobile-specific fixes */
+@media (max-width: 767px) {
+  /* Prevent any potential scrolling */
+  body {
+    overflow: hidden;
+  }
+  
+  /* Make sure collection container doesn't exceed bounds */
+  .collection-container {
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+  
+  /* Ensure mode controls don't interfere with content */
+  .mode-controls {
+    top: env(safe-area-inset-top, 10px);
+    right: env(safe-area-inset-right, 10px);
+  }
 }
