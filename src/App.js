@@ -23,7 +23,7 @@ function App() {
   const [treeCollection, setTreeCollection] = useState([]);
   const [showTreeCollection, setShowTreeCollection] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
-  const [discoveryMode, setDiscoveryMode] = useState(false);
+  const [discoveryMode, setDiscoveryMode] = useState(true);
   const [apiTreeData, setApiTreeData] = useState([]);
 
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
@@ -262,7 +262,7 @@ useEffect(() => {
               </APIProvider>
 
           <div className="mode-controls toggle-collection-btn" onClick={() => setDiscoveryMode(!discoveryMode)}>
-            {discoveryMode ? '🔍 Discovery Mode' : '📚 Guided Learning Mode'}
+            {discoveryMode ? '🔍 Discovery Mode' : '📚 Learning Mode'}
           </div>
 
             </div>

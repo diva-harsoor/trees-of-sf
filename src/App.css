@@ -73,6 +73,11 @@ html, body {
   }
 }
 
+/* Hide the close (X) button on Google Maps InfoWindow */
+.gm-style-iw-chr {
+  display: none !important;
+}
+
 .error-message {
   color: #b22222;
   background: #ffeaea;
@@ -239,3 +244,4 @@ html, body {
     right: max(10px, env(safe-area-inset-right, 10px));
   }
 }
+
