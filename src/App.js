@@ -237,11 +237,11 @@ useEffect(() => {
                         ) : discoveryMode ? (
                           // Discovery mode: just show tree info
                           <div className="tree-info-window">
-                            <h3 className="tree-title">{selectedMarker.qspecies || 'Unknown Tree'}</h3>
-                            <p className="tree-detail">Species: {selectedMarker.qspecies || 'Unknown Tree'}</p>
-                            <p className="tree-detail">Address: {selectedMarker.qaddress || 'Unknown'}</p>
-                            <p className="tree-detail">Site Info: {selectedMarker.qsiteinfo || 'Unknown'}</p>
-                            <p className="tree-detail">Planted: {selectedMarker.plantdate ? new Date(selectedMarker.plantdate).getFullYear() : 'Unknown'}</p>
+                            <h3 className="tree-detail">{selectedMarker.qspecies?.split('::')[1] || 'Unknown Tree'}</h3>
+                            <i><p className="tree-detail">{selectedMarker.qspecies?.split('::')[0] || 'Unknown'}</p></i>
+                            {selectedMarker.plantdate &&(
+                              <p className="tree-detail">Planted in {new Date(selectedMarker.plantdate).getFullYear()}</p>
+                            )}
                           </div>
                         ) : (
                           // Guided mode: show quiz functionality
