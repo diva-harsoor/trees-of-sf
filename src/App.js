@@ -20,11 +20,12 @@ function App() {
   // const [treeData, setTreeData] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [treeCollection, setTreeCollection] = useState([]);
+  const [treeCollection, setTreeCollection] = useState({});
   const [showTreeCollection, setShowTreeCollection] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
   const [discoveryMode, setDiscoveryMode] = useState(true);
   const [apiTreeData, setApiTreeData] = useState([]);
+  const [currentCardIndex, setCurrentCardIndex] = useState({});
 
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
@@ -226,15 +227,7 @@ useEffect(() => {
                           setSelectedMarker(null)
                         }}
                       >
-                        {treeCollection.includes(selectedMarker.tree_id) ? (
-                        <div className="tree-info-window">
-                          <h3 className="tree-title">{selectedMarker.beginner_designation || selectedMarker.common_name || 'Unknown Tree'}</h3>
-                          <p className="tree-detail">Common Name: {selectedMarker.common_name || 'Unknown Tree'}</p>
-                          <p className="tree-detail">Scientific name: <i>{selectedMarker.Latin_name || selectedMarker.scientific_name || 'Unknown Tree'}</i></p>
-                          <p className="tree-detail">Address: {selectedMarker.qaddress || selectedMarker.address || 'Unknown'}</p>
-                          <p className="tree-detail">Planted: {selectedMarker.plant_age_in_days ? `${Math.floor(selectedMarker.plant_age_in_days/365.25)} years ago` : 'Unknown'}</p>
-                        </div>
-                        ) : discoveryMode ? (
+                        {discoveryMode ? (
                           // Discovery mode: just show tree info
                           <div className="tree-info-window">
                             <h3 className="tree-detail">{selectedMarker.qspecies?.split('::')[1] || 'Unknown Tree'}</h3>
@@ -247,7 +240,7 @@ useEffect(() => {
                           // Guided mode: show quiz functionality
                           <>
                             {showQuiz ? (
-                              <Quiz collection={treeCollection} setCollection={setTreeCollection} tree={selectedMarker} questions={questionData.find(quiz => quiz.designation === selectedMarker.beginner_designation)?.questions || []} />
+                              <Quiz collection={treeCollection} setCollection={setTreeCollection} tree={selectedMarker} setCurrentCardIndex={setCurrentCardIndex} questions={questionData.find(quiz => quiz.designation === selectedMarker.beginner_designation)?.questions || []} />
                             ) : (
                               <button className="collect-btn" onClick={() => setShowQuiz(true)}>Collect Tree?</button>
                             )}
@@ -272,7 +265,7 @@ useEffect(() => {
               </button>
             </div>
             {showTreeCollection && ( 
-              <Collection treeCollection={treeCollection} setSelectedMarker={setSelectedMarker} />
+              <Collection treeCollection={treeCollection} setSelectedMarker={setSelectedMarker} currentCardIndex={currentCardIndex} setCurrentCardIndex={setCurrentCardIndex} />
             )}
           </div>
         ) : (

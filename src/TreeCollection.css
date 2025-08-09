@@ -16,16 +16,16 @@
 }
 
 .collection-grid {
-  display: inline-flex;
+  display: flex;
   flex-direction: row;
   gap: 15px;
   overflow-x: auto;
   padding-bottom: 8px;
+  padding-right: 20px;
+  padding-left: 10px;
   justify-content: flex-start;
-  scroll-snap-type: x mandatory;
-  min-width: 0;
+  width: 100%;
   align-items: flex-start;
-  white-space: nowrap;
 }
 
 .collection-card {
@@ -35,14 +35,17 @@
   border-radius: 7px;
   border: 1px solid #ddd;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 11px;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
   box-shadow: 0 1px 4px rgba(34,153,34,0.08);
-  min-width: 180px;
-  max-width: 220px;
-  flex: 0 0 auto;
+  width: 200px;
+  height: 150px;
+  flex: 0 0 200px;
   direction: ltr;
   scroll-snap-align: end;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 .collection-card:hover {
   background-color: #176d1a;
@@ -52,12 +55,19 @@
 
 .collection-card-title {
   margin: 0 0 8px 0;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #fff;
 }
 
 .collection-card p {
   margin: 2px 0;
-  font-size: 0.97rem;
+  font-size: 0.85rem;
 } 
+
+.card-stack {
+  box-shadow: 
+    2px 2px 0px rgba(0,0,0,0.1),
+    4px 4px 0px rgba(0,0,0,0.08),
+    6px 6px 0px rgba(0,0,0,0.06);
+}

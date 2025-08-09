@@ -2,17 +2,33 @@ import React, { useState, useEffect } from 'react';
 import ProgressBar from './ProgressBar';
 import './Quiz.css';
 
-function Quiz({ tree, collection, setCollection, questions }) {
+function Quiz({ tree, collection, setCollection, questions, setCurrentCardIndex }) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [showQuiz, setShowQuiz] = useState(true);
 
+  // Reset quiz state when tree changes
+  useEffect(() => {
+    setCurrentQuestion(0);
+    setScore(0);
+    setShowQuiz(true);
+  }, [tree]);
+
   // Update collection for successful quiz
   useEffect(() => {
     if (!showQuiz && score === questions.length) {
-      setCollection(prev => [...prev, tree]);
+      setCollection(prev => ({
+        ...prev,
+        [tree.beginner_designation]: [...(prev[tree.beginner_designation] || []), tree]
+      }));
+      setCurrentCardIndex(prev => ({
+        ...prev,
+        [tree.beginner_designation]: (prev[tree.beginner_designation] || 0)
+      }));
     }
-  }, [showQuiz, score, questions.length, setCollection, tree]);
+  }, [showQuiz, score, questions.length, setCollection, tree.beginner_designation, setCurrentCardIndex]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+
 
   // Safeguard for empty questions
   if (!questions || questions.length === 0) {
