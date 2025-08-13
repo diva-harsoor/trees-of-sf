@@ -6,6 +6,7 @@ import treeData from './data/beginner_trees.json';
 import questionData from './data/questions.json';
 import Quiz from './Quiz';
 import Collection from './TreeCollection';
+import AITreeInfo from './AITreeInfo';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { findAllByLabelText } from '@testing-library/dom';
@@ -235,6 +236,7 @@ useEffect(() => {
                             {selectedMarker.plantdate &&(
                               <p className="tree-detail">Planted in {new Date(selectedMarker.plantdate).getFullYear()}</p>
                             )}
+                            <AITreeInfo commonName={selectedMarker.qspecies?.split('::')[1]} scientificName={selectedMarker.qspecies?.split('::')[0]} />
                           </div>
                         ) : (
                           // Guided mode: show quiz functionality
