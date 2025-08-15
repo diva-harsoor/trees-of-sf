@@ -1,11 +1,11 @@
 // Custom hook for getting tree info
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 export const useAITreeInfo = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const getTreeInfo = async (commonName, scientificName = null, location = 'San Francisco') => {
+  const getTreeInfo = useCallback(async (commonName, scientificName = null, location = 'San Francisco') => {
     // Check localStorage cache first
     const cacheKey = `tree-info-${commonName.toLowerCase().replace(/\s+/g, '-')}`;
     const cached = localStorage.getItem(cacheKey);
@@ -56,7 +56,7 @@ export const useAITreeInfo = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   return { getTreeInfo, loading, error };
 };

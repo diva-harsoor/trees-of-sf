@@ -21,13 +21,10 @@ function AITreeInfo({ commonName, scientificName }) {
     };
 
     fetchInfo();
-  }, [commonName, scientificName, getTreeInfo]);
+  }, [commonName, scientificName]);
 
   return (
     <div>
-      <h3>{commonName}</h3>
-      {scientificName && <em>{scientificName}</em>}
-      
       {loading && <p>Loading tree information...</p>}
       
       {error && <p style={{ color: 'red' }}>Failed to load tree information.</p>}

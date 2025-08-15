@@ -27,6 +27,7 @@ function App() {
   const [discoveryMode, setDiscoveryMode] = useState(true);
   const [apiTreeData, setApiTreeData] = useState([]);
   const [currentCardIndex, setCurrentCardIndex] = useState({});
+  const [readMore, setReadMore] = useState(false);
 
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
@@ -79,7 +80,7 @@ const nearbyTrees = useMemo(() => {
     Math.abs(parseFloat(tree.location.latitude) - currentLocation.coords.latitude) < 0.01 && // ~1km rough filter
     Math.abs(parseFloat(tree.location.longitude) - currentLocation.coords.longitude) < 0.01
   );
-}, [currentLocation, discoveryMode, treeData, apiTreeData]);
+}, [currentLocation, discoveryMode, apiTreeData]);
 
 const closestTree = useMemo(() => 
   findClosest(currentLocation, nearbyTrees),
@@ -184,6 +185,7 @@ useEffect(() => {
                     onClick={() => {
                         setShowQuiz(false);
                         setSelectedMarker(null)
+                        setReadMore(false);
                       }
                     }
                   >
@@ -212,6 +214,7 @@ useEffect(() => {
                           title={tree.common_name || 'Tree'}
                           onClick={() => {
                           setSelectedMarker(tree);
+                          setReadMore(false);
                         }}
                         />
                       )
@@ -225,7 +228,8 @@ useEffect(() => {
                         }}
                         onCloseClick={() => {
                           setShowQuiz(false);
-                          setSelectedMarker(null)
+                          setSelectedMarker(null);
+                          setReadMore(false);
                         }}
                       >
                         {discoveryMode ? (
@@ -236,7 +240,11 @@ useEffect(() => {
                             {selectedMarker.plantdate &&(
                               <p className="tree-detail">Planted in {new Date(selectedMarker.plantdate).getFullYear()}</p>
                             )}
-                            <AITreeInfo commonName={selectedMarker.qspecies?.split('::')[1]} scientificName={selectedMarker.qspecies?.split('::')[0]} />
+                            {readMore ? (
+                              <AITreeInfo commonName={selectedMarker.qspecies?.split('::')[1]} scientificName={selectedMarker.qspecies?.split('::')[0]} />
+                            ):(
+                              <button className="read-more-btn" onClick={() => setReadMore(true)}>Read More</button>
+                            )}
                           </div>
                         ) : (
                           // Guided mode: show quiz functionality

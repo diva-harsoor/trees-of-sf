@@ -205,6 +205,14 @@ html, body {
   background: #229922;
 }
 
+.read-more-btn {
+  background: #2E6F40;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 2px 10px;
+}
+
 .loading-message {
   color: #333;
   font-size: 1.1rem;
