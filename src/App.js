@@ -48,26 +48,33 @@ function App() {
   // Might be better to find a tree 50m away from user
   function findClosest(currentLocation, trees) {
     if (!currentLocation || !trees.length) return null;
+    
     let minDist = Infinity;
     let closest = null;
+    
     trees.forEach(tree => {
       if (!tree.location) return;
-      const tree_latitude = tree.location && parseFloat(tree.location.latitude);
-      const tree_longitude = tree.location && parseFloat(tree.location.longitude);
-      if (tree_latitude == null || tree_longitude == null) return;
-      const dist = Math.sqrt(
-        Math.pow(tree_latitude - currentLocation.coords.latitude, 2) +
-        Math.pow(tree_longitude - currentLocation.coords.longitude, 2)
-      );
+      
+      const treeLat = parseFloat(tree.location.latitude);
+      const treeLon = parseFloat(tree.location.longitude);
+      
+      if (isNaN(treeLat) || isNaN(treeLon)) return;
+      
+      // Convert degree differences to meters (approximate)
+      const latDiff = (treeLat - currentLocation.coords.latitude) * 111320; // ~111.32km per degree latitude
+      const lonDiff = (treeLon - currentLocation.coords.longitude) * 111320 * Math.cos(currentLocation.coords.latitude * Math.PI / 180);
+      
+      const dist = Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
+      
       if (dist < minDist) {
         minDist = dist;
-        closest = tree;
-        closest.distance_m = dist;
+        closest = { ...tree, distance_m: Math.round(dist) };
       }
     });
+    
     return closest;
   }
-
+      
   // Pre-filter trees by proximity to speed up closest tree calculation
 const nearbyTrees = useMemo(() => {
   if (!currentLocation) return [];
