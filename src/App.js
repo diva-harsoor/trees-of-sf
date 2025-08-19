@@ -1,7 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
 import { useState, useEffect, useMemo } from 'react';
-import {APIProvider, Map, Marker, InfoWindow} from '@vis.gl/react-google-maps';
+import {APIProvider, Map, Marker, InfoWindow, useMap, useDirectionsService, DirectionsRenderer} from '@vis.gl/react-google-maps';
 import treeData from './data/beginner_trees.json';
 import questionData from './data/questions.json';
 import Quiz from './Quiz';
@@ -28,6 +28,9 @@ function App() {
   const [apiTreeData, setApiTreeData] = useState([]);
   const [currentCardIndex, setCurrentCardIndex] = useState({});
   const [readMore, setReadMore] = useState(false);
+  const [showNavigation, setShowNavigation] = useState(false);
+  const [showDirections, setShowDirections] = useState(false);
+  const [directionsResult, setDirectionsResult] = useState(null);
 
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
@@ -94,9 +97,78 @@ const closestTree = useMemo(() =>
   [currentLocation, nearbyTrees]
 );
 
+const CustomDirectionsRenderer = ({ directions, options = {} }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || !directions) return;
+
+    // Create a native Google Maps DirectionsRenderer
+    const directionsRenderer = new window.google.maps.DirectionsRenderer({
+      suppressMarkers: options.suppressMarkers || false,
+      suppressInfoWindows: options.suppressInfoWindows || true,
+      polylineOptions: {
+        strokeColor: options.polylineOptions?.strokeColor || '#FF0000',
+        strokeWeight: options.polylineOptions?.strokeWeight || 6,
+        strokeOpacity: options.polylineOptions?.strokeOpacity || 1.0,
+        zIndex: options.polylineOptions?.zIndex || 1000,
+        ...options.polylineOptions
+      },
+      ...options
+    });
+
+    // Set the map and directions
+    directionsRenderer.setMap(map);
+    directionsRenderer.setDirections(directions);
+
+    // Cleanup function
+    return () => {
+      directionsRenderer.setMap(null);
+    };
+  }, [map, directions, options]);
+
+  return null; // This component doesn't render anything directly
+};
+
+
+const getDirections = async () => {
+  console.log('Getting directions to closest tree');
+  if (!closestTree || !currentLocation) return;
+  if (!closestTree || !currentLocation) {
+    console.log('Missing data:', { closestTree: !!closestTree, currentLocation: !!currentLocation });
+    return;
+  }
+  const directionsService = new window.google.maps.DirectionsService();
+
+  try {
+
+    const result = await directionsService.route({
+      origin: { lat: Number(currentLocation.coords.latitude), lng: Number(currentLocation.coords.longitude) },
+      destination: { lat: Number(closestTree.location.latitude), lng: Number(closestTree.location.longitude) },
+      travelMode: window.google.maps.TravelMode.WALKING,
+    });
+
+    console.log('Directions result:', result);
+    console.log('Directions result routes:', result.routes);
+
+    setDirectionsResult(result);
+    setShowDirections(true);
+  } catch (error) {
+    console.error('Error getting directions:', error);
+    toast.error('Failed to get directions');
+    setDirectionsResult(null);
+  }
+}
+
 useEffect(() => {
   if (closestTree && isMapping && mapLoaded && !discoveryMode) {
-      toast(`There is a ${closestTree.common_name} tree ${closestTree.distance_m} meters away from you.`);
+      toast(
+        <div>
+          <p>There is a {closestTree.common_name} tree {closestTree.distance_m} meters away from you.</p>
+          <button className="read-more-btn" onClick={() => setShowNavigation(true)}>Get Directions</button>
+        </div>
+      );
+      console.log('showNavigation: ', showNavigation);
     }
 }, [closestTree, isMapping, mapLoaded, discoveryMode]);
 
@@ -193,6 +265,7 @@ useEffect(() => {
                         setShowQuiz(false);
                         setSelectedMarker(null)
                         setReadMore(false);
+                        setShowNavigation(false);
                       }
                     }
                   >
@@ -226,6 +299,20 @@ useEffect(() => {
                         />
                       )
                     ))}
+
+                    {showDirections && directionsResult && (
+                      <>
+                        {console.log('Rendering directions on map:', directionsResult)}
+                        <CustomDirectionsRenderer 
+                          directions={directionsResult}
+                          options={{
+                            suppressMarkers: true, // Hide A/B markers
+                            suppressInfoWindows: true,
+                          }}
+                        />
+                      </>
+                    )}
+
 
                     {selectedMarker && (
                       <InfoWindow
@@ -271,20 +358,84 @@ useEffect(() => {
                 )}
               </APIProvider>
 
-          <div className="mode-controls toggle-collection-btn" onClick={() => setDiscoveryMode(!discoveryMode)}>
+          <div className="mode-controls toggle-collection-btn" onClick={
+            () => {
+                setDiscoveryMode(!discoveryMode)
+                setShowNavigation(false)
+                setShowDirections(false)
+                setDirectionsResult(null)
+                setShowQuiz(false)
+                setSelectedMarker(null)
+                setReadMore(false)
+                
+                // Reset map zoom to default and center on user location
+                if (currentLocation) {
+                  const mapElement = document.querySelector('.api-provider div[style*="position: relative"]');
+                  if (mapElement && mapElement.__googleMapsMap) {
+                    const map = mapElement.__googleMapsMap;
+                    map.setZoom(18);
+                    map.panTo({
+                      lat: currentLocation.coords.latitude,
+                      lng: currentLocation.coords.longitude
+                    });
+                  }
+                }
+                }
+              }
+            >
             {discoveryMode ? '🔍 Discovery Mode' : '📚 Learning Mode'}
           </div>
 
-            </div>
-            <div className="collection-view">
-              <button className="toggle-collection-btn" onClick={() => setShowTreeCollection(!showTreeCollection)}>
-                {showTreeCollection ? 'Hide Tree Collection' : 'Show Tree Collection'}
+          {showNavigation && closestTree && (
+            <div className="navigation-container">
+              <h2>Navigate to Tree</h2>
+
+              <p>{closestTree.common_name} - {closestTree.distance_m} m away.</p>
+              <button 
+                className="toggle-collection-btn" 
+                onClick={() => {
+                  // Open in Google Maps for turn-by-turn directions
+                  const lat = closestTree.location.latitude;
+                  const lng = closestTree.location.longitude;
+                  const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+                  window.open(url, '_blank');
+                }}
+              >
+                Open in Google Maps
               </button>
-            </div>
-            {showTreeCollection && ( 
-              <Collection treeCollection={treeCollection} setSelectedMarker={setSelectedMarker} currentCardIndex={currentCardIndex} setCurrentCardIndex={setCurrentCardIndex} />
-            )}
+              <div>
+            <button 
+              className="toggle-collection-btn" 
+              onClick={() => {
+                if (showDirections) {
+                  setShowDirections(false);
+                  setDirectionsResult(null);
+                } else {
+                  getDirections();
+                }
+              }} 
+            >
+              {showDirections ? 'Hide Path' : 'View Path'}
+            </button>
           </div>
+
+              {directionsResult && (
+                <p>
+                  🚶‍♂️ {directionsResult.routes[0].legs[0].duration.text} walk
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+          <div className="collection-view">
+            <button className="toggle-collection-btn" onClick={() => setShowTreeCollection(!showTreeCollection)}>
+              {showTreeCollection ? 'Hide Tree Collection' : 'Show Tree Collection'}
+            </button>
+          </div>
+          {showTreeCollection && ( 
+            <Collection treeCollection={treeCollection} setSelectedMarker={setSelectedMarker} currentCardIndex={currentCardIndex} setCurrentCardIndex={setCurrentCardIndex} />
+          )}
+        </div>
         ) : (
           <button className="landing-button" onClick={handleClick}>
             <h1>Discover <br /> Trees Near You</h1>
